@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.booleanOrNull
+import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
 
 data class ReminderState(
@@ -139,7 +139,8 @@ class SettingsViewModel(private val graph: AppGraph) : ViewModel() {
         viewModelScope.launch {
             try {
                 val answer = repository.call { pushTest() }
-                val delivered = (answer as? JsonObject)?.get("delivered")?.jsonPrimitive?.booleanOrNull != false
+                // The number of the user's devices reached by push
+                val delivered = (answer as? JsonObject)?.get("delivered")?.jsonPrimitive?.intOrNull?.let { it > 0 } ?: true
                 _alerts.update { it.copy(testSending = false, testSent = delivered, testNotDelivered = !delivered) }
             } catch (e: ApiException) {
                 _alerts.update { it.copy(testSending = false, error = e.forScreen()) }

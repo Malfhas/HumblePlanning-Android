@@ -587,7 +587,8 @@ class Repository(
         if (fresh.isEmpty()) return
         prefs.putString(KEY_ALERTS_SHOWN, (shown + fresh.map { it.id }).toList().takeLast(MAX_SHOWN_ALERTS).joinToString(","))
         _alertsChanged.value++
-        if (notify) fresh.forEach(alertNotifier::show)
+        // In the foreground alerts only go to the list, except the test of the settings: it is there to show one
+        fresh.filter { notify || it.type == PUSH_TEST_ALERT }.forEach(alertNotifier::show)
     }
 
     // ---- Reminders ----
@@ -643,6 +644,7 @@ class Repository(
         private val SUPPORTED_LANGUAGES = setOf("fr", "en", "es", "de")
         private const val MAX_SHOWN_ALERTS = 200
         private const val MAX_ALERT_PAGES = 2
+        private const val PUSH_TEST_ALERT = "push_test"
         const val KEY_PLANNING_FILTER = "planning_filter"
         private const val KEY_SERVER_URL = "server"
         private const val KEY_LAST_LOGIN = "last_login"

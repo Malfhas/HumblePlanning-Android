@@ -1,8 +1,5 @@
 package com.humbleplanning.app
 
-import android.Manifest
-import android.app.NotificationManager
-import android.content.pm.PackageManager
 import androidx.compose.ui.test.isEnabled
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.ProcessLifecycleOwner
@@ -79,10 +76,7 @@ class AlertsTest : UiTest() {
     }
 
     @Test fun inTheBackground_theSyncWorkerPostsANotificationThatOpensTheTask() {
-        if (app.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-            instrumentation.uiAutomation.grantRuntimePermission(app.packageName, Manifest.permission.POST_NOTIFICATIONS)
-        }
-        waitFor("permission granted") { app.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED }
+        grantNotifications()
         signIn(account)
         device.pressHome()
         // Stopped: the socket is closed and only the worker can read the alert
@@ -91,8 +85,7 @@ class AlertsTest : UiTest() {
         val title = waitServerAlert(task.getString("id"))
 
         AlertSync.runNow(app)
-        val manager = app.getSystemService(NotificationManager::class.java)
-        waitFor("a notification from the app", LONG_TIMEOUT) { manager.activeNotifications.isNotEmpty() }
+        waitNotification()
 
         device.openNotification()
         checkNotNull(device.wait(Until.findObject(By.text(title)), 15_000)) { "notification \"$title\" not in the shade" }.click()

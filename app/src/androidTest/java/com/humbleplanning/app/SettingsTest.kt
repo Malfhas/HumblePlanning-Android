@@ -108,17 +108,18 @@ class SettingsTest : UiTest() {
     }
 
     @Test fun devices_revokeAnotherOne_andPushTestSaysWhatHappened() {
+        grantNotifications()
+        // Push through the relay of the mock server; no device of the account has a push token
+        Rest.setConfig("MOBILE_PUSH_RELAY_URL", "http://mock:4000")
+        afterTest { Rest.setConfig("MOBILE_PUSH_RELAY_URL", "") }
         val other = Rest.login(account, deviceName = "Second phone")
-        val test = Rest.call("POST", "/api/mobile/devices/current/push-test", Rest.sessionOf(account))
         openSettings()
 
         waitRevealed(clickable(s(R.string.alerts_send_test)))
         tap(clickable(s(R.string.alerts_send_test)))
-        when {
-            !test.ok -> waitText(test.error, timeout = LONG_TIMEOUT)
-            test.json.optBoolean("delivered", true) -> waitText(s(R.string.alerts_test_sent), timeout = LONG_TIMEOUT)
-            else -> waitText(s(R.string.alerts_test_not_delivered), timeout = LONG_TIMEOUT)
-        }
+        waitText(s(R.string.alerts_test_not_delivered), timeout = LONG_TIMEOUT)
+        // Asked from the open app, the test still shows as a notification: it is there to check them
+        waitNotification()
 
         waitRevealed(label("Second phone"))
         tap(icon(s(R.string.devices_revoke_label, "Second phone")))
