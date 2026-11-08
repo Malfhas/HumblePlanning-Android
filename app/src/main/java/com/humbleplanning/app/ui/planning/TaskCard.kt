@@ -29,6 +29,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -221,15 +225,30 @@ private fun PeopleRow(users: List<UserDto>, modifier: Modifier = Modifier) {
 /** Picture of the person when there is one, initials otherwise. Only a path on the user's own server is loaded. */
 @Composable
 fun UserAvatar(user: UserDto, size: Int) {
-    val server = LocalContext.current.graph.repository.serverUrl
-    val image = user.image?.takeIf { it.startsWith("/") && !it.startsWith("//") }?.let { server + it }
+    val image = avatarUrl(LocalContext.current.graph.repository.serverUrl, user.image)
+    // The initials until the picture is there: they would show through a transparent one
+    var loaded by remember(image) { mutableStateOf(false) }
     Box {
-        Avatar(user.displayName, parseColor(user.color), size)
+        if (!loaded) Avatar(user.displayName, parseColor(user.color), size)
         if (image != null) {
-            AsyncImage(image, null, Modifier.size(size.dp).clip(CircleShape), contentScale = ContentScale.Crop)
+            AsyncImage(image, null, Modifier.size(size.dp).clip(CircleShape), contentScale = ContentScale.Crop, onSuccess = { loaded = true })
         }
     }
 }
+
+/**
+ * Address of the photo of a person: the server keeps `avatars/<file>` and serves it at `/api/avatars/<file>`.
+ * The server writes each photo in AVIF and in WebP; Android does not read its AVIF, so the WebP copy is asked.
+ * A file name only, never an address elsewhere nor a way out of the folder.
+ */
+internal fun avatarUrl(server: String, image: String?): String? {
+    val file = image?.trim()?.removePrefix("/api/avatars/")?.removePrefix("avatars/") ?: return null
+    if (!file.matches(AVATAR_FILE)) return null
+    val name = if (file.endsWith(".avif", ignoreCase = true)) file.dropLast(".avif".length) + ".webp" else file
+    return "$server/api/avatars/$name"
+}
+
+private val AVATAR_FILE = Regex("""[A-Za-z0-9_-][A-Za-z0-9._-]*""")
 
 /** Initials on the colour of the person. */
 @Composable
