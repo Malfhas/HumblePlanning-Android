@@ -61,6 +61,14 @@ async function http(method, path, { body, cookie, headers = {}, web = false } = 
 
 const device = (name) => ({ name, appVersion: APP, locale: 'fr' });
 
+// The QR code is created from the web profile: a browser session of the account (the app's own is refused)
+async function webLogin(identifier, password) {
+  const res = await http('POST', '/api/auth/login', { web: true, body: { identifier, password } });
+  const cookie = (res.headers.getSetCookie?.() ?? []).map((c) => c.split(';')[0]).join('; ');
+  if (res.status !== 200 || !cookie) throw new Error(`web login ${identifier}: HTTP ${res.status} ${res.text.slice(0, 200)}`);
+  return cookie;
+}
+
 async function login(identifier, password, deviceName = 'test') {
   const res = await http('POST', '/api/mobile/auth/login', { body: { identifier, password, device: device(deviceName) } });
   if (res.body?.status !== 'authenticated') throw new Error(`login ${identifier}: HTTP ${res.status} ${res.text.slice(0, 200)}`);
@@ -209,6 +217,8 @@ async function main() {
   expectStatus('tâche verrouillée : suppression refusée', await http('DELETE', `/api/tasks/${lockable.body.id}`, { cookie: sFull.cookie }), 403);
 
   section('Synchronisation incrémentale');
+  // The cursor reads 5 s back, so a row committed during a read is never skipped: let the changes above age past it
+  await new Promise((r) => setTimeout(r, 6000));
   const full = await http('GET', `/api/mobile/tasks/sync?startDate=${day(0)}&endDate=${day(3)}`, { cookie: admin.cookie });
   expectStatus('premier passage', full, 200);
   check('premier passage : toutes les tâches', full.body?.changed?.length === full.body?.ids?.length && full.body?.changed?.length > 0);
@@ -315,7 +325,9 @@ async function main() {
 
       // More than one page between two reads: the cursor reads on, nothing is skipped
       const t3 = new Date(Date.now() - 1000).toISOString();
-      for (let i = 0; i < 101; i++) await http('POST', '/api/mobile/devices/current/push-test', { cookie: sOwn2.cookie });
+      // One alert per task assigned (the push test is limited to a few per user)
+      for (let i = 0; i < 101; i++) track(await http('POST', '/api/tasks', { cookie: admin.cookie, body: payload([uOwn2.id], { title: `${PREFIX} page ${i}` }) }));
+      await new Promise((r) => setTimeout(r, 2000));
       const page1 = await http('GET', `/api/mobile/alerts?after=${encodeURIComponent(t3)}`, { cookie: sOwn2.cookie });
       const last = page1.body?.alerts?.at(-1);
       check('page pleine : more et curseur sur la dernière', page1.body?.alerts?.length === 100 && page1.body.more === true && page1.body.serverTime === last?.createdAt,
@@ -378,7 +390,11 @@ async function main() {
   }
 
   section('Connexion par QR code');
-  const pairing = await http('POST', '/api/mobile/pairing', { cookie: sFull.cookie });
+  const webFull = await webLogin(uFull.username, PASSWORD);
+  const browser = { 'Sec-Fetch-Site': 'same-origin' };
+  expectStatus('QR refusé depuis la session de l\'app', await http('POST', '/api/mobile/pairing', { cookie: sFull.cookie, headers: browser }), 403);
+  expectStatus('QR refusé hors du navigateur', await http('POST', '/api/mobile/pairing', { cookie: webFull, web: true }), 403);
+  const pairing = await http('POST', '/api/mobile/pairing', { cookie: webFull, web: true, headers: browser });
   expectStatus('code créé', pairing, 201);
   const code = new URL(pairing.body.link.replace('humbleplanning://', 'https://x/')).searchParams.get('code');
   check('lien au bon format', pairing.body.link.startsWith('humbleplanning://login?url=') && /^[0-9a-f]{64}$/.test(code));
@@ -466,7 +482,9 @@ async function main() {
   await new Promise((r) => setTimeout(r, 600));
   const blocked = await http('GET', '/api/profile', { cookie: sOwn.cookie });
   expectStatus('app trop ancienne : 426', blocked, 426);
-  check('version minimale et page du store fournies', blocked.body?.params?.minimumVersion === '9.0.0' && blocked.body?.params?.storeUrl?.includes('com.humbleplanning.app'));
+  // The download page is the server's choice (MOBILE_STORE_URL, by default the GitHub releases of the app):
+  // any link the app can open (BlockingScreen.openStore) is fine.
+  check('version minimale et page du store fournies', blocked.body?.params?.minimumVersion === '9.0.0' && /^(https|market):\/\//i.test(blocked.body?.params?.storeUrl ?? ''));
   const newer = await http('GET', '/api/profile', { cookie: sOwn.cookie, headers: { 'X-App-Version': '9.1.0' } });
   expectStatus('app à jour : passe', newer, 200);
   const blockedLogin = await http('POST', '/api/mobile/auth/login', { body: { identifier: uOwn.username, password: PASSWORD, device: device('t') } });
