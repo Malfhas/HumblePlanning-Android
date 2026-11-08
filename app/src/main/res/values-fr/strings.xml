@@ -165,6 +165,9 @@
     <string name="assistant_empty_help">Posez vos questions sur le planning à l\'assistant.</string>
     <string name="assistant_untitled">Conversation</string>
     <string name="assistant_delete_title">Supprimer cette conversation ?</string>
+    <string name="assistant_rename">Renommer</string>
+    <string name="assistant_rename_title">Renommer la conversation</string>
+    <string name="assistant_rename_label">Titre</string>
     <string name="assistant_hello">Comment puis-je vous aider ?</string>
     <string name="assistant_hello_help">Tout changement du planning attend votre confirmation.</string>
     <string name="assistant_placeholder">Votre message</string>

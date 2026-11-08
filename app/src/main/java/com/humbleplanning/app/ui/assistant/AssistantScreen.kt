@@ -16,7 +16,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.AutoAwesome
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -25,20 +28,28 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -102,6 +113,17 @@ class ConversationsViewModel(private val repository: Repository) : ViewModel() {
         viewModelScope.launch { repository.assistantQuota()?.let { quota -> _state.update { it.copy(quota = quota) } } }
     }
 
+    fun rename(id: String, title: String) {
+        viewModelScope.launch {
+            try {
+                val renamed = repository.call { renameConversation(id, title) }
+                _state.update { s -> s.copy(conversations = s.conversations.map { if (it.id == id) it.copy(title = renamed.title.ifBlank { title }) else it }, error = null) }
+            } catch (e: ApiException) {
+                _state.update { it.copy(error = e.forScreen()) }
+            }
+        }
+    }
+
     fun delete(id: String) {
         viewModelScope.launch {
             try {
@@ -121,6 +143,7 @@ fun AssistantScreen(onOpenConversation: (String?) -> Unit, bottomPadding: Dp) {
     val vm = humbleViewModel { ConversationsViewModel(it.repository) }
     val state by vm.state.collectAsStateWithLifecycle()
     var toDelete by remember { mutableStateOf<ConversationDto?>(null) }
+    var toRename by remember { mutableStateOf<ConversationDto?>(null) }
     LifecycleResumeEffect(Unit) {
         vm.load()
         onPauseOrDispose { }
@@ -150,7 +173,12 @@ fun AssistantScreen(onOpenConversation: (String?) -> Unit, bottomPadding: Dp) {
                         verticalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
                         items(state.conversations, key = { it.id }) { conversation ->
-                            ConversationRow(conversation, onOpen = { onOpenConversation(conversation.id) }, onDelete = { toDelete = conversation })
+                            ConversationRow(
+                                conversation,
+                                onOpen = { onOpenConversation(conversation.id) },
+                                onRename = { toRename = conversation },
+                                onDelete = { toDelete = conversation },
+                            )
                         }
                     }
                 }
@@ -185,10 +213,52 @@ fun AssistantScreen(onOpenConversation: (String?) -> Unit, bottomPadding: Dp) {
             dismissButton = { TextButton(onClick = { toDelete = null }) { Text(stringResource(R.string.cancel)) } },
         )
     }
+    toRename?.let { conversation ->
+        RenameDialog(
+            conversation.title,
+            onRename = { title ->
+                vm.rename(conversation.id, title)
+                toRename = null
+            },
+            onDismiss = { toRename = null },
+        )
+    }
 }
 
+/** New title of a conversation, as on the web: 1 to 200 characters. */
 @Composable
-private fun ConversationRow(conversation: ConversationDto, onOpen: () -> Unit, onDelete: () -> Unit) {
+private fun RenameDialog(current: String, onRename: (String) -> Unit, onDismiss: () -> Unit) {
+    var title by remember { mutableStateOf(TextFieldValue(current, TextRange(0, current.length))) }
+    val focus = remember { FocusRequester() }
+    val trimmed = title.text.trim()
+    val valid = trimmed.isNotEmpty() && trimmed != current
+    LaunchedEffect(Unit) { focus.requestFocus() }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = { Icon(Icons.Outlined.Edit, null) },
+        title = { Text(stringResource(R.string.assistant_rename_title)) },
+        text = {
+            OutlinedTextField(
+                title,
+                { if (it.text.length <= MAX_TITLE) title = it },
+                Modifier.fillMaxWidth().focusRequester(focus),
+                label = { Text(stringResource(R.string.assistant_rename_label)) },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(capitalization = KeyboardCapitalization.Sentences, imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { if (valid) onRename(trimmed) }),
+            )
+        },
+        confirmButton = {
+            Button(onClick = { onRename(trimmed) }, enabled = valid, shape = MaterialTheme.shapes.medium) { Text(stringResource(R.string.save)) }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.cancel)) } },
+    )
+}
+
+private const val MAX_TITLE = 200
+
+@Composable
+private fun ConversationRow(conversation: ConversationDto, onOpen: () -> Unit, onRename: () -> Unit, onDelete: () -> Unit) {
     val locale = appLocale()
     Surface(
         onClick = onOpen,
@@ -210,6 +280,9 @@ private fun ConversationRow(conversation: ConversationDto, onOpen: () -> Unit, o
                 }
             }
             Spacer(Modifier.width(4.dp))
+            IconButton(onClick = onRename) {
+                Icon(Icons.Outlined.Edit, stringResource(R.string.assistant_rename), tint = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
             IconButton(onClick = onDelete) {
                 Icon(Icons.Outlined.Delete, stringResource(R.string.delete), tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }

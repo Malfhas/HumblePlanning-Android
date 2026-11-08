@@ -42,7 +42,6 @@ import androidx.compose.material.icons.outlined.FilterList
 import androidx.compose.material.icons.outlined.Today
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -87,6 +86,7 @@ import com.humbleplanning.app.R
 import com.humbleplanning.app.data.References
 import com.humbleplanning.app.data.TaskDto
 import com.humbleplanning.app.ui.AnimatedBanner
+import com.humbleplanning.app.ui.AppDatePicker
 import com.humbleplanning.app.ui.AppSegmented
 import com.humbleplanning.app.ui.Banner
 import com.humbleplanning.app.ui.BannerTone
@@ -223,7 +223,7 @@ fun PlanningScreen(vm: PlanningViewModel, onOpenTask: (String) -> Unit, onNewTas
                 }) { Text(stringResource(R.string.ok)) }
             },
             dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text(stringResource(R.string.cancel)) } },
-        ) { DatePicker(pickerState) }
+        ) { AppDatePicker(pickerState) }
     }
 }
 

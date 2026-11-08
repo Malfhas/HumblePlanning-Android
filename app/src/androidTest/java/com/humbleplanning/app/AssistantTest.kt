@@ -56,7 +56,7 @@ class AssistantTest : UiTest() {
         waitText(s(R.string.assistant_confirm_title))
     }
 
-    @Test fun conversation_answerHistoryAndDelete() {
+    @Test fun conversation_answerHistoryRenameAndDelete() {
         openAssistant()
         waitText(s(R.string.assistant_empty))
         newConversation()
@@ -74,6 +74,14 @@ class AssistantTest : UiTest() {
         waitAnswer()
         tap(icon(s(R.string.back)))
         waitExists(icon(s(R.string.assistant_new)))
+
+        // Renamed as on the web
+        tap(icon(s(R.string.assistant_rename)))
+        waitText(s(R.string.assistant_rename_title))
+        type(s(R.string.assistant_rename_label), "Renamed conversation")
+        tap(clickable(s(R.string.save)) and isInDialog())
+        waitForServer("conversation renamed") { Rest.conversations(session).first().getString("title") == "Renamed conversation" }
+        waitText("Renamed conversation")
 
         tap(icon(s(R.string.delete)))
         waitText(s(R.string.assistant_delete_title))

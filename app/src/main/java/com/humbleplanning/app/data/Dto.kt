@@ -375,3 +375,4 @@ data class ConversationDetail(
 )
 
 @Serializable data class NewConversationRequest(val title: String? = null, val projectId: String? = null)
+@Serializable data class RenameConversationRequest(val title: String)

@@ -165,6 +165,9 @@
     <string name="assistant_empty_help">Fragen Sie den Assistenten zu Ihrer Planung.</string>
     <string name="assistant_untitled">Unterhaltung</string>
     <string name="assistant_delete_title">Diese Unterhaltung löschen?</string>
+    <string name="assistant_rename">Umbenennen</string>
+    <string name="assistant_rename_title">Unterhaltung umbenennen</string>
+    <string name="assistant_rename_label">Titel</string>
     <string name="assistant_hello">Wie kann ich helfen?</string>
     <string name="assistant_hello_help">Jede Änderung der Planung wartet auf Ihre Bestätigung.</string>
     <string name="assistant_placeholder">Ihre Nachricht</string>
