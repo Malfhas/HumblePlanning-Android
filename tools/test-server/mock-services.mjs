@@ -107,7 +107,8 @@ const server = createServer((req, res) => {
     // Push relay: `{fid, alertId}`, the Firebase Installation ID of the device
     if (req.method === "POST" && path === "/v1/push") {
       if (typeof body.fid !== "string" || !body.fid) return send(res, 400, { error: "invalid_body" });
-      if (deadTokens.has(body.fid)) return send(res, 404, { error: "firebase_refused", status: 404 });
+      // Firebase reported the installation as unregistered: the relay's own signal, the server forgets the token
+      if (deadTokens.has(body.fid)) return send(res, 410, { error: "unregistered" });
       pushes.push({ via: "relay", fid: body.fid, alertId: body.alertId, authorization: req.headers.authorization ?? null });
       return send(res, 200, { status: "sent" });
     }
@@ -120,7 +121,16 @@ const server = createServer((req, res) => {
       // HTTP v1 targets the Firebase Installation ID with `message.fid`; `token` is the deprecated registration token
       const message = body.message ?? {};
       if (typeof message.fid !== "string" || message.token !== undefined) return send(res, 400, { error: { status: "INVALID_ARGUMENT" } });
-      if (deadTokens.has(message.fid)) return send(res, 404, { error: { status: "UNREGISTERED" } });
+      // What HTTP v1 answers for an unregistered installation: NOT_FOUND with an FcmError detail
+      if (deadTokens.has(message.fid)) {
+        return send(res, 404, {
+          error: {
+            code: 404,
+            status: "NOT_FOUND",
+            details: [{ "@type": "type.googleapis.com/google.firebase.fcm.v1.FcmError", errorCode: "UNREGISTERED" }],
+          },
+        });
+      }
       pushes.push({ via: "firebase", fid: message.fid, data: message.data, priority: message.android?.priority });
       return send(res, 200, { name: "projects/test/messages/1" });
     }
