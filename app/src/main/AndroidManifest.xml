@@ -53,6 +53,11 @@
             </intent-filter>
         </receiver>
 
+        <!-- Firebase Cloud Messaging by Firebase Installation ID (register / onRegistered), not by the deprecated
+             registration token: getToken() and onNewToken() are off with this flag -->
+        <meta-data
+            android:name="firebase_messaging_installation_id_enabled"
+            android:value="true" />
         <service
             android:name=".alerts.HumbleMessagingService"
             android:exported="false">

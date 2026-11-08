@@ -12,7 +12,7 @@ Humble Planning for Android is a client for a Humble Planning server, usually ru
 | Session of your account | Staying signed in | Encrypted on the phone, sent only to that server |
 | Planning data, profile, attachments, conversations with the assistant | The app's purpose | Between the phone and your server. A copy of your own tasks is kept encrypted on the phone for offline reading |
 | Device name, app version, language | Listing your signed-in devices, keeping the app compatible | To your server |
-| Push token | Real-time alerts | To your server and, to deliver a push, to Google Firebase Cloud Messaging, possibly through the publisher's push relay, which stores nothing |
+| Firebase installation ID of the app | Real-time alerts | To your server and, to deliver a push, to Google Firebase Cloud Messaging, possibly through the publisher's push relay, which stores nothing |
 
 A push only holds an alert identifier: the content of alerts is read from your server, not sent through Google or the relay.
 

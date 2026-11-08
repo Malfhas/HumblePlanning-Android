@@ -200,7 +200,7 @@ class PlanningTest : UiTest() {
         tapGrid(Seed.own.name, day)
         waitExists(clickable(s(R.string.save)))
         type(s(R.string.field_title), title)
-        tap(clickable(s(R.string.field_project) + " *", substring = true))
+        openChoice(R.string.field_project)
         pick(Seed.project.name)
         tap(clickable(s(R.string.save)))
         waitExists(bar(title))

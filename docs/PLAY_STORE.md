@@ -43,7 +43,7 @@ The publisher receives nothing: data goes to the server chosen by the user. Goog
 | Calendar events (tasks) | Yes | No | App functionality |
 | Files (attachments) | Yes, optional | No | App functionality |
 | Messages to the assistant | Yes, optional | Yes, to the AI provider of the user's server | App functionality |
-| Device ID (push token) | Yes | No | App functionality |
+| Device ID (Firebase installation ID, for push) | Yes | No | App functionality |
 | Encrypted in transit | Yes | | |
 | Deletion on request | Through the server's administrator | | |
 

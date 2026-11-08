@@ -305,6 +305,20 @@ abstract class UiTest(private val language: String = "en", private val coldStart
     /** The search of a choice list: long lists only have it, and may not show the line otherwise. */
     protected fun searchField(): SemanticsMatcher = hasSetTextAction() and hasContentDescription(s(R.string.search))
 
+    /**
+     * Opens the choice list of a required field of the task form (its sheet is titled like the field). A tap made
+     * while the keyboard of the previous field closes can be lost, the form moving under the finger: the field is
+     * tapped once more when no list shows up.
+     */
+    protected fun openChoice(@StringRes field: Int) {
+        val title = s(field)
+        val opener = clickable("$title *", substring = true)
+        tap(opener)
+        val opened = runCatching { waitFor("choice list $title", OPEN_RETRY) { exists(label(title)) } }.isSuccess
+        if (!opened) tap(opener)
+        waitExists(label(title))
+    }
+
     /** Chooses a line in the choice list on screen, through its search when it has one. */
     protected fun pick(name: String) {
         waitFor("choice list with $name", LONG_TIMEOUT) { exists(searchField()) || exists(pickerItem(name)) }
@@ -489,6 +503,8 @@ abstract class UiTest(private val language: String = "en", private val coldStart
         const val TAG = "HPUI"
         const val TIMEOUT = 15_000L
         const val LONG_TIMEOUT = 30_000L
+        /** A choice list that did not open by then is tapped again (see [openChoice]). */
+        const val OPEN_RETRY = 5_000L
         /** A test stuck for this long fails instead of holding up the campaign. */
         private const val MAX_SECONDS = 300L
         private const val KEY_NOTIFICATIONS_ASKED = "notifications_asked"

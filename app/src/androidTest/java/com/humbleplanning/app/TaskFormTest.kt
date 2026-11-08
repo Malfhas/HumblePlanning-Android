@@ -24,8 +24,7 @@ class TaskFormTest : UiTest() {
     }
 
     private fun chooseProject() {
-        tap(clickable(s(R.string.field_project) + " *", substring = true))
-        waitExists(label(s(R.string.field_project)))
+        openChoice(R.string.field_project)
         pick(Seed.project.name)
         waitExists(clickable(s(R.string.save)))
     }

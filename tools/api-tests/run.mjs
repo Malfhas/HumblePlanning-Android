@@ -296,18 +296,18 @@ async function main() {
 
     if (LOCAL && reset) {
       section('Relais de push');
-      await http('PUT', '/api/mobile/devices/current', { cookie: sOwn.cookie, body: { pushToken: 'jeton-own-1' } });
+      await http('PUT', '/api/mobile/devices/current', { cookie: sOwn.cookie, body: { pushToken: 'fid-own-1' } });
       await saveConfig('MOBILE_PUSH_RELAY_URL', 'http://mock:4000');
       await new Promise((r) => setTimeout(r, 600));
       check('info annonce le push', (await http('GET', '/api/mobile/info')).body?.pushEnabled === true);
       const pushed = track(await http('POST', '/api/tasks', { cookie: admin.cookie, body: payload([uOwn.id], { title: `${PREFIX} secret` }) }));
       await new Promise((r) => setTimeout(r, 1500));
       const pushes = await fetch(`${MOCK}/__pushes`).then((r) => r.json());
-      const push = pushes.find((p) => p.token === 'jeton-own-1');
+      const push = pushes.find((p) => p.fid === 'fid-own-1');
       check('sonnette envoyée au relais', !!push, JSON.stringify(pushes).slice(0, 200));
       check('aucun contenu dans le push', push && !JSON.stringify(push).includes('secret') && /^[0-9a-f-]{36}$/.test(push.alertId));
-      check('auteur non réveillé', pushed.status === 201 && !pushes.some((p) => p.token === 'jeton-admin'));
-      await fetch(`${MOCK}/__dead`, { method: 'POST', body: JSON.stringify({ token: 'jeton-own-1' }) });
+      check('auteur non réveillé', pushed.status === 201 && !pushes.some((p) => p.fid === 'fid-admin'));
+      await fetch(`${MOCK}/__dead`, { method: 'POST', body: JSON.stringify({ fid: 'fid-own-1' }) });
       track(await http('POST', '/api/tasks', { cookie: admin.cookie, body: payload([uOwn.id], { title: `${PREFIX} mort` }) }));
       await new Promise((r) => setTimeout(r, 1500));
       const devices = await http('GET', '/api/mobile/devices', { cookie: sOwn.cookie });
@@ -336,11 +336,11 @@ async function main() {
       await new Promise((r) => setTimeout(r, 600));
       check('info annonce le push sans relais', (await http('GET', '/api/mobile/info')).body?.pushEnabled === true);
       await fetch(`${MOCK}/__reset`, { method: 'POST' });
-      await http('PUT', '/api/mobile/devices/current', { cookie: sOwn.cookie, body: { pushToken: 'jeton-own-2' } });
+      await http('PUT', '/api/mobile/devices/current', { cookie: sOwn.cookie, body: { pushToken: 'fid-own-2' } });
       track(await http('POST', '/api/tasks', { cookie: admin.cookie, body: payload([uOwn.id], { title: `${PREFIX} firebase` }) }));
       await new Promise((r) => setTimeout(r, 1500));
-      const direct = (await fetch(`${MOCK}/__pushes`).then((r) => r.json())).find((p) => p.token === 'jeton-own-2');
-      check('push envoyé directement à Firebase', direct?.via === 'firebase' && /^[0-9a-f-]{36}$/.test(direct?.data?.alertId ?? ''), JSON.stringify(direct));
+      const direct = (await fetch(`${MOCK}/__pushes`).then((r) => r.json())).find((p) => p.fid === 'fid-own-2');
+      check('push envoyé directement à Firebase, au FID', direct?.via === 'firebase' && /^[0-9a-f-]{36}$/.test(direct?.data?.alertId ?? ''), JSON.stringify(direct));
       await saveConfig('FCM_SERVICE_ACCOUNT_JSON', '');
     }
 

@@ -22,7 +22,9 @@ import androidx.work.OutOfQuotaPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkerParameters
+import com.google.android.gms.tasks.Task
 import com.google.firebase.FirebaseApp
+import com.google.firebase.installations.FirebaseInstallations
 import com.google.firebase.messaging.FirebaseMessaging
 import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
@@ -133,10 +135,14 @@ object AlertSync {
     }
 }
 
-/** Firebase is only a wake-up here: a message holds an alert id, the content comes from the user's server. */
+/**
+ * Firebase is only a wake-up here: a message holds an alert id, the content comes from the user's server.
+ * The phone is addressed by its Firebase Installation ID (FID), the `pushToken` the server stores.
+ */
 class HumbleMessagingService : FirebaseMessagingService() {
-    override fun onNewToken(token: String) {
-        (applicationContext as HumbleApplication).graph.repository.onPushToken(token)
+    /** Registration with FCM done, at first start or after the FID changed (reinstall, cleared data, restore). */
+    override fun onRegistered(installationId: String) {
+        (applicationContext as HumbleApplication).graph.repository.onPushToken(installationId)
     }
 
     override fun onMessageReceived(message: RemoteMessage) {
@@ -144,14 +150,22 @@ class HumbleMessagingService : FirebaseMessagingService() {
     }
 }
 
-/** Firebase is optional: a build without google-services.json has no app and simply gets no token. */
+/** Firebase is optional: a build without google-services.json has no app and simply gets no FID. */
 object PushTokens {
+    /** Registers the phone with FCM and returns its FID, or null when Firebase is absent or unreachable. */
     suspend fun current(context: Context): String? {
         if (FirebaseApp.getApps(context).isEmpty()) return null
-        return suspendCancellableCoroutine { continuation ->
-            FirebaseMessaging.getInstance().token
-                .addOnSuccessListener { continuation.resume(it) }
-                .addOnFailureListener { continuation.resume(null) }
-        }
+        if (!FirebaseMessaging.getInstance().register().succeeds()) return null
+        return FirebaseInstallations.getInstance().id.resultOrNull()
+    }
+
+    private suspend fun <T> Task<T>.resultOrNull(): T? = suspendCancellableCoroutine { continuation ->
+        addOnSuccessListener { continuation.resume(it) }
+        addOnFailureListener { continuation.resume(null) }
+    }
+
+    private suspend fun Task<Void>.succeeds(): Boolean = suspendCancellableCoroutine { continuation ->
+        addOnSuccessListener { continuation.resume(true) }
+        addOnFailureListener { continuation.resume(false) }
     }
 }
