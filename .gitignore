@@ -1,0 +1,34 @@
+*.iml
+.claude/
+.gradle/
+.kotlin/
+**/build/
+local.properties
+.idea/
+.DS_Store
+captures/
+.externalNativeBuild/
+.cxx/
+
+# App signing: never in git
+signing.properties
+/app/google-services.json
+*.jks
+*.keystore
+
+# Test accounts: never in git
+*.local.properties
+
+# Local copy of the server sources (separate repository)
+src_humbleplanning/
+
+node_modules/
+
+# Server handoff dossier: for the official server repository
+docs/server-handoff/
+
+# The owner's own publication notes
+docs/private/
+
+# APKs built by tools/release.ps1, published on GitHub Releases
+/dist/

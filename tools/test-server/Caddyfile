@@ -1,0 +1,15 @@
+{
+	auto_https off
+	admin off
+}
+
+:3100 {
+	handle /socket.io/* {
+		reverse_proxy socket:3001
+	}
+	handle {
+		reverse_proxy web:3000 {
+			flush_interval -1
+		}
+	}
+}

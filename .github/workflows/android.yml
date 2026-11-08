@@ -1,0 +1,62 @@
+name: Android
+
+# Runs on every pull request and on every push to main. The job names are the
+# required status checks of the main branch: rename them in the ruleset too.
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build, unit tests, lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: gradle/actions/setup-gradle@v5
+      - name: Texts are generated from tools/textes.mjs
+        run: |
+          node tools/textes.mjs
+          git diff --exit-code app/src/main/res
+      - run: ./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lintDebug --console=plain
+      - uses: actions/upload-artifact@v5
+        if: failure()
+        with:
+          name: reports
+          path: app/build/reports
+
+  dco:
+    name: DCO sign-off
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Every commit is signed off by its author
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          status=0
+          for sha in $(git rev-list --no-merges "$BASE..$HEAD"); do
+            author="$(git log -1 --format='%an <%ae>' "$sha")"
+            case "$author" in *"[bot]"*) continue ;; esac
+            if ! git log -1 --format='%(trailers:key=Signed-off-by,valueonly)' "$sha" | grep -qiF "$author"; then
+              echo "::error::Commit ${sha:0:7} by ${author} is not signed off by its author. Sign it off with 'git commit -s' (see CONTRIBUTING.md)."
+              status=1
+            fi
+          done
+          exit "$status"

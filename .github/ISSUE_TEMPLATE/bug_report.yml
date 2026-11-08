@@ -1,0 +1,79 @@
+name: Bug report
+description: Something does not work as expected in the app
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please search the [existing issues](https://github.com/Malfhas/HumblePlanning-Android/issues) first.
+        **Security vulnerabilities must not be reported here**: follow the [security policy](https://github.com/Malfhas/HumblePlanning-Android/security/policy) instead.
+  - type: textarea
+    id: description
+    attributes:
+      label: What happened?
+      description: A clear description of the bug. Screenshots or a short screen recording help a lot.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the planning in the Grid view
+        2. Pinch to zoom out
+        3. …
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: App version
+      description: Shown in *Settings* in the app, and on the sign-in screen.
+      placeholder: "1.0.0"
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Phone and Android version
+      placeholder: "Pixel 8, Android 16"
+    validations:
+      required: true
+  - type: input
+    id: server
+    attributes:
+      label: Humble Planning server version
+      description: Shown in *Settings → Version* on the web, or by `humble-planning status`.
+      placeholder: "1.2.0"
+  - type: dropdown
+    id: source
+    attributes:
+      label: Installed from
+      options:
+        - GitHub release
+        - Obtainium
+        - Built from source
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: Relevant output of `adb logcat`, or of `humble-planning logs` on the server. Remove any personal data, password, server address or token first.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched the existing issues and this bug is not reported yet.
+          required: true
+        - label: This is not a security vulnerability.
+          required: true

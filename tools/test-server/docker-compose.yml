@@ -1,0 +1,78 @@
+# Humble Planning server for the app's tests: same routing as production (a
+# proxy in front of the web and Socket.io processes), reachable from the Android
+# emulator at http://10.0.2.2:3100 and from this PC at http://localhost:3100.
+#
+#   HP_SERVER_SRC=<path to the server sources> docker compose -p hp-test up -d --build
+#
+# Every secret here is a throwaway value for this local server.
+name: hp-test
+
+x-app: &app
+  build:
+    context: ${HP_SERVER_SRC:?set HP_SERVER_SRC to a checkout of the Humble Planning server with the mobile API}
+    args:
+      APP_VERSION: test
+  image: humble-planning:mobile-test
+  environment: &app-env
+    NODE_ENV: production
+    DATABASE_URL: postgresql://humble:humble_test@db:5432/humble_planning
+    BETTER_AUTH_URL: http://10.0.2.2:3100
+    APP_BASE_URL: http://10.0.2.2:3100
+    BETTER_AUTH_SECRET: test-only-better-auth-secret-0123456789
+    SOCKET_SECRET: test-only-socket-secret
+    SOCKET_URL: http://socket:3001
+    BACKUP_ENCRYPTION_KEY: 00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff
+    TIMEZONE: Europe/Paris
+    OPENROUTER_BASE_URL: http://mock:4000/api/v1
+    FCM_OAUTH_URL: http://mock:4000/oauth/token
+    FCM_BASE_URL: http://mock:4000
+  depends_on:
+    db:
+      condition: service_healthy
+
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: humble
+      POSTGRES_PASSWORD: humble_test
+      POSTGRES_DB: humble_planning
+    tmpfs:
+      - /var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -q -U humble -d humble_planning"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+
+  web:
+    <<: *app
+    command: ["web"]
+
+  socket:
+    <<: *app
+    command: ["socket"]
+    # The image's default probes the web port, which this service does not open
+    healthcheck:
+      test: ["CMD", "docker-entrypoint.sh", "healthcheck", "socket"]
+
+  # Stands in for OpenRouter and for the push relay and Firebase
+  mock:
+    image: node:22-alpine
+    command: ["node", "/mock/mock-services.mjs"]
+    volumes:
+      - ./mock-services.mjs:/mock/mock-services.mjs:ro
+    ports:
+      - "127.0.0.1:3102:4000"
+
+  proxy:
+    image: caddy:2-alpine
+    command: ["caddy", "run", "--adapter", "caddyfile", "--config", "/etc/caddy/Caddyfile"]
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+    # This PC only: the emulator reaches it through 10.0.2.2, the host's loopback
+    ports:
+      - "127.0.0.1:3100:3100"
+    depends_on:
+      - web
+      - socket
