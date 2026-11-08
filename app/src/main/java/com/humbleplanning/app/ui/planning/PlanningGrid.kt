@@ -40,6 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,6 +59,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -367,7 +369,7 @@ private fun PersonRow(
                         } else Modifier
                     ),
             ) {
-                row.bars.forEach { bar -> Bar(bar, refs, titleMode, cellWidth, row.user, onOpenTask) }
+                row.bars.forEach { bar -> Bar(bar, refs, titleMode, cellWidth, scroll, row.user, onOpenTask) }
             }
         }
     }
@@ -398,7 +400,7 @@ private fun PersonCell(user: UserDto, isMe: Boolean, width: Dp) {
 }
 
 @Composable
-private fun Bar(bar: GridBar, refs: References, titleMode: String, cellWidth: Dp, user: UserDto, onOpenTask: (String) -> Unit) {
+private fun Bar(bar: GridBar, refs: References, titleMode: String, cellWidth: Dp, scroll: ScrollState, user: UserDto, onOpenTask: (String) -> Unit) {
     val task = bar.task
     val scheme = MaterialTheme.colorScheme
     val locale = appLocale()
@@ -420,6 +422,11 @@ private fun Bar(bar: GridBar, refs: References, titleMode: String, cellWidth: Dp
         if (task.isLocked) add(stringResource(R.string.a11y_locked))
     }.joinToString(", ")
     val text = color.contentColor()
+    val density = LocalDensity.current
+    // Where the content of the bar starts, in the scrolled grid
+    val contentStart = with(density) { (x + 1.dp + 4.dp).toPx() }
+    val keep = with(density) { MIN_TITLE_WIDTH.roundToPx() }
+    val startHidden by remember(contentStart) { derivedStateOf { scroll.value > contentStart } }
     Row(
         Modifier.offset { IntOffset(x.roundToPx() + 1.dp.roundToPx(), y.roundToPx()) }
             .width(width - 2.dp).height(BAR_HEIGHT)
@@ -427,13 +434,14 @@ private fun Bar(bar: GridBar, refs: References, titleMode: String, cellWidth: Dp
             .background(color)
             .clickable(role = Role.Button) { onOpenTask(task.id) }
             .clearAndSetSemantics { contentDescription = description }
-            .padding(horizontal = 4.dp),
+            .padding(horizontal = 4.dp)
+            .followVisibleStart(scroll, contentStart, keep),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        if (bar.continuesBefore) Text("‹", color = text, style = MaterialTheme.typography.labelMedium)
+        if (bar.continuesBefore || startHidden) Text("‹", color = text, style = MaterialTheme.typography.labelMedium)
         if (task.isLocked && width >= 40.dp) Icon(Icons.Outlined.Lock, null, Modifier.size(11.dp), tint = text)
         // Too narrow for a readable text: the colour alone says the day is taken
-        if (width >= 30.dp) {
+        if (width >= MIN_TITLE_WIDTH) {
             Text(
                 title,
                 Modifier.weight(1f).padding(start = 2.dp),
@@ -448,4 +456,18 @@ private fun Bar(bar: GridBar, refs: References, titleMode: String, cellWidth: Dp
         }
         if (bar.continuesAfter) Text("›", color = text, style = MaterialTheme.typography.labelMedium, textAlign = TextAlign.End)
     }
+}
+
+private val MIN_TITLE_WIDTH = 30.dp
+
+/**
+ * When the start of a bar is scrolled out of sight, its content follows the left edge of the grid, so the title of
+ * a task over several days stays readable; it stops [keepPx] before the end of the bar. Read at layout: scrolling
+ * moves the content without recomposing.
+ */
+private fun Modifier.followVisibleStart(scroll: ScrollState, startPx: Float, keepPx: Int) = layout { measurable, constraints ->
+    val shift = (scroll.value - startPx).roundToInt().coerceIn(0, (constraints.maxWidth - keepPx).coerceAtLeast(0))
+    val width = constraints.maxWidth - shift
+    val placeable = measurable.measure(constraints.copy(minWidth = width, maxWidth = width))
+    layout(constraints.maxWidth, placeable.height) { placeable.place(shift, 0) }
 }
