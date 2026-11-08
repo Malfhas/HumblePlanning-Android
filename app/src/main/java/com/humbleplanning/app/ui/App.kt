@@ -1,5 +1,6 @@
 package com.humbleplanning.app.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -33,6 +34,7 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -196,7 +198,8 @@ private fun AppNavHost(
                 onLoggedIn = { nav.navigate(MainRoute) { popUpTo(nav.graph.id) { inclusive = true } } },
             )
         }
-        composable<ScannerRoute> {
+        composable<ScannerRoute> { entry ->
+            BackLikeTheButton(nav, entry)
             ScannerScreen(
                 onResult = { link ->
                     nav.popBackStack()
@@ -223,6 +226,7 @@ private fun AppNavHost(
         }
         composable<TaskRoute> { entry ->
             val route = entry.toRoute<TaskRoute>()
+            BackLikeTheButton(nav, entry)
             TaskDetailScreen(
                 taskId = route.id,
                 onBack = { nav.popBackStack() },
@@ -232,6 +236,7 @@ private fun AppNavHost(
         }
         composable<TaskFormRoute> { entry ->
             val route = entry.toRoute<TaskFormRoute>()
+            BackLikeTheButton(nav, entry)
             TaskFormScreen(
                 taskId = route.id,
                 defaultDate = route.date,
@@ -241,13 +246,27 @@ private fun AppNavHost(
             )
         }
         composable<ConversationRoute> { entry ->
+            BackLikeTheButton(nav, entry)
             ConversationScreen(
                 conversationId = entry.toRoute<ConversationRoute>().id,
                 onBack = { nav.popBackStack() },
             )
         }
-        composable<TwoFactorSetupRoute> {
+        composable<TwoFactorSetupRoute> { entry ->
+            BackLikeTheButton(nav, entry)
             TwoFactorSetupScreen(onClose = { nav.popBackStack() })
         }
     }
+}
+
+/**
+ * The back gesture closes the screen with the same animation as its back button: the predictive back of the
+ * navigation dragged the two screens along with the finger and drew them half faded. Called before the content of
+ * the screen, so that a screen asking first (form with changes) still takes the gesture. Only pops the screen it
+ * belongs to: a second swipe during the animation does not close the one below.
+ */
+@Composable
+private fun BackLikeTheButton(nav: NavHostController, entry: NavBackStackEntry) {
+    val canPop = remember(entry) { nav.previousBackStackEntry != null }
+    BackHandler(enabled = canPop) { if (nav.currentBackStackEntry == entry) nav.popBackStack() }
 }
