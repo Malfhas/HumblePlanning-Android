@@ -191,6 +191,11 @@ async function main() {
   expectStatus('admin crée pour un autre', adminTask, 201);
   check('l\'heure revient en HH:MM:SS', adminTask.body?.startTime === '08:00:00', adminTask.body?.startTime);
   check('tâche : plusieurs champs relus', adminTask.body?.isMilestone === true && adminTask.body?.users?.[0]?.id === uOwn2.id);
+  // The people of a task, as any reader sees them: no contact details, contract or rate
+  const detail = await http('GET', `/api/tasks/${adminTask.body.id}`, { cookie: sReader.cookie });
+  const leaked = ['email', 'phone', 'mobile', 'address', 'hourlyRate', 'contractTypeId', 'comment', 'lastLoginAt', 'preferences'];
+  check('détail d\'une tâche : aucune coordonnée des personnes', detail.status === 200 && detail.body?.users?.length > 0
+    && detail.body.users.every((u) => leaked.every((k) => !(k in u))), JSON.stringify(detail.body?.users?.[0] ?? detail.body).slice(0, 200));
 
   expectStatus('mes-tâches ne modifie pas celle d\'un autre', await http('PUT', `/api/tasks/${adminTask.body.id}`, { cookie: sOwn.cookie, body: { title: 'piraté', isMilestone: false } }), 403);
   expectStatus('mes-tâches ne supprime pas celle d\'un autre', await http('DELETE', `/api/tasks/${adminTask.body.id}`, { cookie: sOwn.cookie }), 403);
@@ -387,6 +392,14 @@ async function main() {
     const anonymous = await fetch(`${URL_}/api/files/tasks/${fileTask.body.id}/${encodeURIComponent(uploaded.name)}`, { redirect: 'manual' });
     check('téléchargement sans session refusé', anonymous.status === 401, `HTTP ${anonymous.status}`);
     expectStatus('suppression', await http('DELETE', `/api/tasks/${fileTask.body.id}/files?fileId=${uploaded.id}`, { cookie: sOwn.cookie }), 200);
+    // A locked task: its attachments change only for someone allowed to lock, like its fields
+    const kept = await fetch(`${URL_}/api/tasks/${fileTask.body.id}/files`, { method: 'POST', headers: { Cookie: sOwn.cookie, 'X-App-Version': APP }, body: form() }).then((r) => r.json()).catch(() => null);
+    expectStatus('verrouillage par l\'admin', await http('PUT', `/api/tasks/${fileTask.body.id}`, { cookie: admin.cookie, body: { isLocked: true, isMilestone: false } }), 200);
+    const lockedUpload = await fetch(`${URL_}/api/tasks/${fileTask.body.id}/files`, { method: 'POST', headers: { Cookie: sOwn.cookie, 'X-App-Version': APP }, body: form() });
+    check('tâche verrouillée : ajout refusé sans droit de verrouillage', lockedUpload.status === 403, `HTTP ${lockedUpload.status}`);
+    expectStatus('tâche verrouillée : suppression refusée sans droit de verrouillage', await http('DELETE', `/api/tasks/${fileTask.body.id}/files?fileId=${kept?.id}`, { cookie: sOwn.cookie }), 403);
+    await http('PUT', `/api/tasks/${fileTask.body.id}`, { cookie: admin.cookie, body: { isLocked: false, isMilestone: false } });
+    if (kept?.id) await http('DELETE', `/api/tasks/${fileTask.body.id}/files?fileId=${kept.id}`, { cookie: sOwn.cookie });
   }
 
   section('Connexion par QR code');
