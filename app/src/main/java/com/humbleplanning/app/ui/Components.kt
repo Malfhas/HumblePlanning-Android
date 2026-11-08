@@ -42,6 +42,8 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.outlined.WarningAmber
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -56,6 +58,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -193,6 +196,16 @@ fun ProgressButton(text: String, loading: Boolean, onClick: () -> Unit, modifier
             Text(text)
         }
     }
+}
+
+/**
+ * Material's date picker without its animation between the calendar and the typed date: going back to the calendar
+ * built every month while the dialog grew, and stuttered. Each mode now shows at once.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AppDatePicker(state: DatePickerState) {
+    key(state.displayMode) { DatePicker(state) }
 }
 
 @Composable

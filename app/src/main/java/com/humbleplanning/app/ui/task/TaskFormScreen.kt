@@ -32,7 +32,6 @@ import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -68,6 +67,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.humbleplanning.app.R
 import com.humbleplanning.app.data.References
 import com.humbleplanning.app.data.TaskDto
+import com.humbleplanning.app.ui.AppDatePicker
 import com.humbleplanning.app.ui.AppSegmented
 import com.humbleplanning.app.ui.Banner
 import com.humbleplanning.app.ui.BannerTone
@@ -329,7 +329,7 @@ fun TaskFormScreen(taskId: String?, defaultDate: String?, defaultUserId: String?
                 }) { Text(stringResource(R.string.ok)) }
             },
             dismissButton = { TextButton(onClick = { pickingDate = null }) { Text(stringResource(R.string.cancel)) } },
-        ) { DatePicker(pickerState) }
+        ) { AppDatePicker(pickerState) }
     }
 
     pickingTime?.let { field ->
