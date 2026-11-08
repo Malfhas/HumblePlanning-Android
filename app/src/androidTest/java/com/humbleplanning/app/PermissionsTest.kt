@@ -16,8 +16,7 @@ class PermissionsTest : UiTest() {
     private fun openUsersPicker() {
         tap(icon(s(R.string.new_task)))
         waitExists(clickable(s(R.string.save)))
-        tap(clickable(s(R.string.field_users) + " *", substring = true))
-        waitExists(label(s(R.string.field_users)))
+        openChoice(R.string.field_users)
     }
 
     private fun backToPlanning() {

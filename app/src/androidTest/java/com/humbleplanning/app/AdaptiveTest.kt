@@ -152,7 +152,7 @@ class AdaptiveTest : UiTest() {
         tap(icon(s(R.string.edit)))
         waitExists(clickable(s(R.string.save)))
         checkScreen("task form", problems)
-        tap(clickable(s(R.string.field_project) + " *", substring = true))
+        openChoice(R.string.field_project)
         waitFor("choice list") { exists(searchField()) || exists(hasClickAction() and label(Seed.project.name)) }
         checkScreen("choice list", problems)
 
