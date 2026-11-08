@@ -48,7 +48,7 @@ data class SecurityState(
 data class AlertsSettingsState(
     val testSending: Boolean = false,
     val testSent: Boolean = false,
-    /** The server answered, but nothing could reach this phone (no push token yet, for instance). */
+    /** The server answered, but nothing could reach this phone (not registered with Firebase yet, for instance). */
     val testNotDelivered: Boolean = false,
     val error: ApiException? = null,
 )

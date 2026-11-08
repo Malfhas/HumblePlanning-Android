@@ -554,9 +554,13 @@ class Repository(
 
     // ---- Alerts ----
 
-    /** Set by the push layer when Firebase is available in this build. */
+    /**
+     * Set by the push layer when Firebase is available in this build. Gives the Firebase Installation ID the
+     * phone is registered under for FCM, sent to the server as `pushToken`.
+     */
     var pushTokenProvider: (suspend () -> String?)? = null
 
+    /** New FID from Firebase (`onRegistered`): first start, reinstall, cleared data, restore on another phone. */
     fun onPushToken(token: String) {
         if (isLoggedIn) scope.launch { runCatching { api().updateDevice(UpdateDeviceRequest(pushToken = token)) } }
     }

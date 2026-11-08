@@ -100,14 +100,15 @@ const server = createServer((req, res) => {
       return send(res, 200, { ok: true });
     }
     if (req.method === "POST" && path === "/__dead") {
-      deadTokens.add(body.token);
+      deadTokens.add(body.fid);
       return send(res, 200, { ok: true });
     }
 
-    // Push relay
+    // Push relay: `{fid, alertId}`, the Firebase Installation ID of the device
     if (req.method === "POST" && path === "/v1/push") {
-      if (deadTokens.has(body.token)) return send(res, 404, { error: "firebase_refused", status: 404 });
-      pushes.push({ via: "relay", token: body.token, alertId: body.alertId, authorization: req.headers.authorization ?? null });
+      if (typeof body.fid !== "string" || !body.fid) return send(res, 400, { error: "invalid_body" });
+      if (deadTokens.has(body.fid)) return send(res, 404, { error: "firebase_refused", status: 404 });
+      pushes.push({ via: "relay", fid: body.fid, alertId: body.alertId, authorization: req.headers.authorization ?? null });
       return send(res, 200, { status: "sent" });
     }
 
@@ -116,9 +117,11 @@ const server = createServer((req, res) => {
       return send(res, 200, { access_token: "test-access-token", expires_in: 3600, token_type: "Bearer" });
     }
     if (req.method === "POST" && /^\/v1\/projects\/[^/]+\/messages:send$/.test(path)) {
+      // HTTP v1 targets the Firebase Installation ID with `message.fid`; `token` is the deprecated registration token
       const message = body.message ?? {};
-      if (deadTokens.has(message.token)) return send(res, 404, { error: { status: "NOT_FOUND" } });
-      pushes.push({ via: "firebase", token: message.token, data: message.data, priority: message.android?.priority });
+      if (typeof message.fid !== "string" || message.token !== undefined) return send(res, 400, { error: { status: "INVALID_ARGUMENT" } });
+      if (deadTokens.has(message.fid)) return send(res, 404, { error: { status: "UNREGISTERED" } });
+      pushes.push({ via: "firebase", fid: message.fid, data: message.data, priority: message.android?.priority });
       return send(res, 200, { name: "projects/test/messages/1" });
     }
 
