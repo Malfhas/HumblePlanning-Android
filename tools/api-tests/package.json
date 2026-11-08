@@ -4,5 +4,5 @@
   "type": "module",
   "description": "Automated API campaign of the Humble Planning Android app",
   "scripts": { "test": "node run.mjs" },
-  "dependencies": { "socket.io-client": "4.8.1" }
+  "dependencies": { "socket.io-client": "4.8.4" }
 }
