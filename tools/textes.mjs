@@ -362,7 +362,8 @@ const plurals = [
 
 const languages = { en: 1, fr: 2, es: 3, de: 4 };
 
-const escape = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/'/g, "\\'").replace(/"/g, '\\"');
+// Android string resources: the backslash first, since the escapes below add some
+const escape = (s) => s.replace(/\\/g, '\\\\').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/'/g, "\\'").replace(/"/g, '\\"');
 
 function file(language) {
   const i = languages[language];
