@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,6 +22,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -327,12 +330,14 @@ private fun RoundIcon(icon: ImageVector, description: String, onClick: () -> Uni
 private fun Header(task: TaskDto, refs: References, color: Color) {
     val project = task.projectOf(refs)
     val status = task.statusOf(refs)
+    // Below the buttons of the bar, whatever the height of the status bar of the phone
+    val top = WindowInsets.statusBars.asPaddingValues().calculateTopPadding() + TopAppBarDefaults.TopAppBarExpandedHeight
     Box(
         Modifier.fillMaxWidth().background(
             Brush.verticalGradient(listOf(color.copy(alpha = 0.32f), color.copy(alpha = 0.10f), MaterialTheme.colorScheme.background))
         )
     ) {
-        Column(Modifier.padding(start = 20.dp, end = 20.dp, top = 112.dp, bottom = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(Modifier.padding(start = 20.dp, end = 20.dp, top = top, bottom = 8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             // Without a task title the project takes its place: not shown twice
             val ownTitle = task.title?.ifBlank { null }
             val context = listOfNotNull(project?.group?.name?.ifBlank { null }, project?.label?.takeIf { ownTitle != null }).joinToString(" · ")
