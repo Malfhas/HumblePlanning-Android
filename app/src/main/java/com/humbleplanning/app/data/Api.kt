@@ -209,6 +209,7 @@ class ApiClient(
     suspend fun conversations(): List<ConversationDto> = get("/api/ai-chat/conversations")
     suspend fun conversation(id: String): ConversationDetail = get("/api/ai-chat/conversations/$id")
     suspend fun createConversation(title: String?): ConversationDto = sendJson("POST", "/api/ai-chat/conversations", NewConversationRequest(title))
+    suspend fun renameConversation(id: String, title: String): ConversationDto = sendJson("PATCH", "/api/ai-chat/conversations/$id", RenameConversationRequest(title))
     suspend fun deleteConversation(id: String): kotlinx.serialization.json.JsonElement = sendEmpty("DELETE", "/api/ai-chat/conversations/$id")
     suspend fun stopReply(id: String) {
         val (response, body) = execute(Request.Builder().url(url("/api/ai-chat/conversations/$id/stop")).post(EMPTY_BODY).build())
