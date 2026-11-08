@@ -1,9 +1,11 @@
 package com.humbleplanning.app.support
 
+import android.Manifest
 import android.app.LocaleManager
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.net.ConnectivityManager
 import android.net.Uri
@@ -402,6 +404,20 @@ abstract class UiTest(private val language: String = "en", private val coldStart
 
     protected fun goTo(@StringRes name: Int) {
         tap(tab(name))
+    }
+
+    // ---- Notifications ----
+
+    protected fun grantNotifications() {
+        if (app.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            instrumentation.uiAutomation.grantRuntimePermission(app.packageName, Manifest.permission.POST_NOTIFICATIONS)
+        }
+        waitFor("permission granted") { app.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED }
+    }
+
+    protected fun waitNotification() {
+        val manager = app.getSystemService(NotificationManager::class.java)
+        waitFor("a notification from the app", LONG_TIMEOUT) { manager.activeNotifications.isNotEmpty() }
     }
 
     // ---- Planning and tasks ----
