@@ -19,7 +19,7 @@ Increase `versionCode` and `versionName` in `app/build.gradle.kts`, then:
 
 Upload `app/build/outputs/bundle/release/app-release.aab`.
 
-To force an update afterwards: Settings > Security > Mobile app > Minimum app version on the server.
+To force an update afterwards: Settings > General > Mobile app > Minimum app version on the server.
 
 ## App content answers
 

@@ -43,7 +43,7 @@ The APK must be attached to the release itself, not only to a CI run: that is wh
 
 - **Obtainium** (an open-source app) follows the GitHub releases: the user adds the repository address once and is told
   of each new version.
-- **Forcing an update**: on each Humble Planning server, Settings > Security > Mobile app, set "Minimum app version" to
+- **Forcing an update**: on each Humble Planning server, Settings > General > Mobile app, set "Minimum app version" to
   the new version and "App download page" to `https://github.com/<owner>/<repository>/releases/latest`. An older app
   then shows "Update required" and its button opens that page.
 

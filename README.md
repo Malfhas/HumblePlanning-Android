@@ -116,7 +116,7 @@ D5:A0:03:F6:E0:B3:93:79:06:EF:CB:59:25:15:1F:07:DF:61:9E:2D:A3:AE:36:98:BC:64:BB
 
 The app needs a [Humble Planning](https://github.com/Malfhas/HumblePlanning) server that includes the mobile API (`/api/mobile`). Ask your administrator for its address, or sign in by scanning the QR code shown in your web profile.
 
-The server decides what each account may do: the app follows the same permissions as the web, and a role needs the "Use the mobile app" permission. Administrators set the options under *Settings → Security → Mobile app*: sign-in, QR codes, alerts, the minimum app version and the page an outdated app opens to update.
+The server decides what each account may do: the app follows the same permissions as the web, and a role needs the "Use the mobile app" permission. Administrators set the options under *Settings → General → Mobile app*: sign-in, QR codes, alerts, the minimum app version and the page an outdated app opens to update.
 
 **Push notifications.** A push only wakes the app up: it carries an alert id, and the app reads the alert from your server, so no planning data goes through Google. A server reaches the app through its own Firebase project, or through the push relay of the published app (`deploy/push-relay` in the server repository). Without either, the app checks for alerts in the background about every 15 minutes, as often as Android allows.
 
