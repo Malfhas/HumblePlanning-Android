@@ -34,7 +34,7 @@ if (!/^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(URL_)) {
 const ADMIN = 'testadmin';
 const ADMIN_PASSWORD = 'TestAdmin2026!x';
 const PASSWORD = 'Campaign2026!xZ';
-const APP_VERSION = '1.0.0';
+const APP_VERSION = '1.0.2';
 // Same server, seen from the emulator
 const EMULATOR_URL = 'http://10.0.2.2:3100';
 const EMULATOR_MOCK = 'http://10.0.2.2:3102';
