@@ -156,6 +156,7 @@
     <string name="a11y_locked">Gesperrt</string>
     <string name="a11y_recurring">Wiederkehrend</string>
     <string name="a11y_attachments">Mit Anhängen</string>
+    <string name="a11y_notes">Mit Notizen</string>
     <string name="alerts_empty">Keine Hinweise</string>
     <string name="alerts_empty_help">Änderungen an Ihren Aufgaben erscheinen hier 7 Tage lang.</string>
     <string name="alerts_syncing">Hinweise werden abgerufen…</string>

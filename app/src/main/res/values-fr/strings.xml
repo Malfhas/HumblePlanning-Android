@@ -156,6 +156,7 @@
     <string name="a11y_locked">Verrouillée</string>
     <string name="a11y_recurring">Répétée</string>
     <string name="a11y_attachments">Avec pièces jointes</string>
+    <string name="a11y_notes">Avec notes</string>
     <string name="alerts_empty">Aucune alerte</string>
     <string name="alerts_empty_help">Les changements de vos tâches apparaissent ici pendant 7 jours.</string>
     <string name="alerts_syncing">Recherche des alertes…</string>

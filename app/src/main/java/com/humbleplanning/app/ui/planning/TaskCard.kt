@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.Notes
 import androidx.compose.material.icons.outlined.AttachFile
 import androidx.compose.material.icons.outlined.Flag
 import androidx.compose.material.icons.outlined.Lock
@@ -126,10 +127,6 @@ fun TaskCard(
             Box(Modifier.width(5.dp).fillMaxHeight().background(projectColor))
             Column(Modifier.weight(1f).padding(horizontal = 14.dp, vertical = if (compact) 10.dp else 12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    if (task.isMilestone) {
-                        Icon(Icons.Outlined.Flag, stringResource(R.string.milestone), Modifier.size(16.dp), tint = MaterialTheme.colorScheme.tertiary)
-                        Spacer(Modifier.width(6.dp))
-                    }
                     Text(
                         task.cardTitle(refs, titleMode),
                         style = MaterialTheme.typography.titleSmall.withStatus(status),
@@ -137,10 +134,14 @@ fun TaskCard(
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f),
                     )
+                    // Markers at the end of the task, as on the web planning; the milestone is the outermost one
                     val iconTint = MaterialTheme.colorScheme.onSurfaceVariant
-                    if (task.isLocked) Icon(Icons.Outlined.Lock, stringResource(R.string.a11y_locked), Modifier.padding(start = 4.dp).size(16.dp), tint = iconTint)
-                    if (task.isRecurring) Icon(Icons.Outlined.Repeat, stringResource(R.string.a11y_recurring), Modifier.padding(start = 4.dp).size(16.dp), tint = iconTint)
-                    if (task.hasAttachments) Icon(Icons.Outlined.AttachFile, stringResource(R.string.a11y_attachments), Modifier.padding(start = 4.dp).size(16.dp), tint = iconTint)
+                    val marker = Modifier.padding(start = 4.dp).size(16.dp)
+                    if (task.isLocked) Icon(Icons.Outlined.Lock, stringResource(R.string.a11y_locked), marker, tint = iconTint)
+                    if (task.isRecurring) Icon(Icons.Outlined.Repeat, stringResource(R.string.a11y_recurring), marker, tint = iconTint)
+                    if (task.hasAttachments) Icon(Icons.Outlined.AttachFile, stringResource(R.string.a11y_attachments), marker, tint = iconTint)
+                    if (task.hasNotes) Icon(Icons.AutoMirrored.Outlined.Notes, stringResource(R.string.a11y_notes), marker, tint = iconTint)
+                    if (task.isMilestone) Icon(Icons.Outlined.Flag, stringResource(R.string.milestone), marker, tint = MaterialTheme.colorScheme.tertiary)
                 }
                 val subtitle = task.cardSubtitle(refs, titleMode)
                 if (subtitle.isNotBlank() && !compact) {
