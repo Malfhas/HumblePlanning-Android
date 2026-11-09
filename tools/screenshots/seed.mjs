@@ -25,7 +25,7 @@ if (!/^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(URL_)) {
 const ADMIN = arg('admin', 'testadmin');
 const ADMIN_PASSWORD = arg('password', 'TestAdmin2026!x');
 const PASSWORD = `Demo-${randomBytes(6).toString('hex')}-Aa9!`;
-const APP = '1.0.0';
+const APP = '1.0.2';
 
 const day = (offset) => {
   const d = new Date(`${WEEK}T12:00:00Z`);

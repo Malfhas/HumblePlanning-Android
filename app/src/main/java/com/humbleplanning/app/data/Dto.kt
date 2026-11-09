@@ -226,6 +226,7 @@ data class TaskDto(
     val lastDate: String get() = endDate?.takeIf { it.isNotEmpty() } ?: startDate
     val isMultiDay: Boolean get() = lastDate != startDate
     val hasAttachments: Boolean get() = fileCount > 0 || files.isNotEmpty()
+    val hasNotes: Boolean get() = !notes.isNullOrBlank()
     val placeLabel: String? get() = place?.name ?: placeText?.takeIf { it.isNotBlank() }
     val userIds: List<String> get() = users.map { it.id }
 }

@@ -26,7 +26,7 @@ if (!ADMIN_PASSWORD) {
 const PREFIX = 'TEST-ANDROID';
 // Accounts created by the campaign: a new random password each run, never a published one
 const PASSWORD = `Tst-${randomBytes(12).toString('hex')}-Aa9!`;
-const APP = '1.0.0';
+const APP = '1.0.2';
 // Lockouts outlive a run: a new set of accounts each time
 const RUN = Date.now().toString(36);
 

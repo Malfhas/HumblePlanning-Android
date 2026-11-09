@@ -27,8 +27,8 @@ android {
         minSdk = 26
         targetSdk = 37
         // Sent to the server in X-App-Version, compared with its minimum app version setting
-        versionName = "1.0.1"
-        versionCode = 10001
+        versionName = "1.0.2"
+        versionCode = 10002
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 

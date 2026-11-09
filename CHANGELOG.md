@@ -4,6 +4,17 @@ All notable changes to Humble Planning for Android are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2026-11-09
+
+### Added
+
+- A notes icon on the task cards when the task has notes, next to the attachments one.
+
+### Changed
+
+- The milestone flag moves to the end of the task cards, after the other markers, as on the web planning.
+- Humble Planning servers from 1.3.0 on require this version of the app.
+
 ## [1.0.1] - 2026-11-08
 
 ### Added
@@ -34,5 +45,6 @@ First release of the native Android app of Humble Planning. It needs a Humble Pl
 - Signed-in devices listed and revocable; update required when the server sets a minimum app version; blocking screens for maintenance and for a withdrawn permission.
 - Phones and tablets, light and dark themes, Material You colours, English, French, Spanish and German.
 
+[1.0.2]: https://github.com/Malfhas/HumblePlanning-Android/releases/tag/v1.0.2
 [1.0.1]: https://github.com/Malfhas/HumblePlanning-Android/releases/tag/v1.0.1
 [1.0.0]: https://github.com/Malfhas/HumblePlanning-Android/releases/tag/v1.0.0

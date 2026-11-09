@@ -157,6 +157,7 @@
     <string name="a11y_locked">Locked</string>
     <string name="a11y_recurring">Recurring</string>
     <string name="a11y_attachments">Has attachments</string>
+    <string name="a11y_notes">Has notes</string>
     <string name="alerts_empty">No alerts</string>
     <string name="alerts_empty_help">Changes to your tasks appear here for 7 days.</string>
     <string name="alerts_syncing">Checking for alerts…</string>

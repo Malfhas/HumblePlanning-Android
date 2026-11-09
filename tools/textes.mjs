@@ -174,6 +174,7 @@ const t = [
   ['a11y_locked', 'Locked', 'Verrouillée', 'Bloqueada', 'Gesperrt'],
   ['a11y_recurring', 'Recurring', 'Répétée', 'Periódica', 'Wiederkehrend'],
   ['a11y_attachments', 'Has attachments', 'Avec pièces jointes', 'Con archivos adjuntos', 'Mit Anhängen'],
+  ['a11y_notes', 'Has notes', 'Avec notes', 'Con notas', 'Mit Notizen'],
 
   // Alerts
   ['alerts_empty', 'No alerts', 'Aucune alerte', 'Sin alertas', 'Keine Hinweise'],

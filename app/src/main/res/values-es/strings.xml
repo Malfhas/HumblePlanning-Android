@@ -156,6 +156,7 @@
     <string name="a11y_locked">Bloqueada</string>
     <string name="a11y_recurring">Periódica</string>
     <string name="a11y_attachments">Con archivos adjuntos</string>
+    <string name="a11y_notes">Con notas</string>
     <string name="alerts_empty">Sin alertas</string>
     <string name="alerts_empty_help">Los cambios en sus tareas aparecen aquí durante 7 días.</string>
     <string name="alerts_syncing">Buscando alertas…</string>
