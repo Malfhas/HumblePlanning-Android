@@ -58,7 +58,7 @@ services:
 
   # Stands in for OpenRouter and for the push relay and Firebase
   mock:
-    image: node:22-alpine
+    image: node:26-alpine
     command: ["node", "/mock/mock-services.mjs"]
     volumes:
       - ./mock-services.mjs:/mock/mock-services.mjs:ro
